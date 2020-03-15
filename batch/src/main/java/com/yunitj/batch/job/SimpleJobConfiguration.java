@@ -22,21 +22,21 @@ public class SimpleJobConfiguration {
     @Bean
     public Job simpleJob() {
         return jobBuilderFactory.get("simpleJob") //simpleJob 이란 이름의 Batch Job을 생성합니다.
-                .start(simpleStep1(null))
+                .start(simpleStep1())
                 .next(simpleStep2(null))
                 .build();
     }
 
+    private final SimpleJobTasklet jobTasklet;
+
+    //JobScope, StepScope 역시 Job이 실행되고 끝날때, Step이 실행되고 끝날때 생성/삭제가 이루어진다고 보시면 됩니다.
     @Bean
     @JobScope //@JobScope에선 stepExecutionContext는 사용할 수 없고, jobParameters와 jobExecutionContext만 사용할 수 있습니다.
-    public Step simpleStep1(@Value("#{jobParameters[requestDate]}") String requestDate) {
+   //@JobScope는 Step 선언문에서 사용 가능하고,
+    public Step simpleStep1() {
+        log.info(">>>>>>>>>>>>>>>> definition simpleStep1");
         return stepBuilderFactory.get("simpleStep1")
-                .tasklet((contribution, chunkContext) -> {
-                    log.info(">>>>> This is Step1");
-                    log.info(">>>>> requestDate = {}", requestDate);
-//                    throw new IllegalArgumentException("step1에서 실패합니다.");
-                    return RepeatStatus.FINISHED;
-                })
+                .tasklet(jobTasklet)
                 .build();
     }
 
